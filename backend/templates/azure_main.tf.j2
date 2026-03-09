@@ -1,0 +1,117 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "ai-infra-rg"
+  location = var.azure_region
+}
+
+# Network
+resource "azurerm_virtual_network" "vnet" {
+  name                = "ai-infra-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+# Compute
+resource "azurerm_network_interface" "main" {
+  count               = {{ compute_count }}
+  name                = "ai-infra-nic-${count.index}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "main" {
+  count               = {{ compute_count }}
+  name                = "ai-infra-vm-${count.index}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1s"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.main[count.index].id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = var.ssh_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+
+{% if has_db %}
+# Database
+resource "azurerm_postgresql_server" "db" {
+  name                = "ai-infra-psql-${random_id.suffix.hex}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  administrator_login          = "psqladmin"
+  administrator_login_password = "SuperSecretPassword123!"
+
+  sku_name   = "B_Gen5_1"
+  version    = "11"
+  storage_mb = 5120
+
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
+  auto_grow_enabled            = true
+
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_2"
+}
+
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+{% endif %}
+
+{% if has_storage %}
+# Storage
+resource "azurerm_storage_account" "storage" {
+  name                     = "aiinfrastr${random_id.st_suffix.hex}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "random_id" "st_suffix" {
+  byte_length = 4
+}
+{% endif %}

@@ -1,0 +1,23 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "{{ region if cloud_provider == 'AWS' else 'us-east-1' }}"
+}
+
+variable "azure_region" {
+  description = "Azure region"
+  type        = string
+  default     = "{{ region if cloud_provider == 'Azure' else 'East US' }}"
+}
+
+variable "instance_type" {
+  description = "Compute instance type"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for Azure VMs"
+  type        = string
+  default     = "ssh-rsa AAAAB3NzaC1yc... dummy key"
+}

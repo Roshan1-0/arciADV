@@ -1,0 +1,19 @@
+output "vpc_id" {
+  value = aws_vpc.main.id
+}
+
+output "instance_ips" {
+  value = aws_instance.app[*].public_ip
+}
+
+{% if has_db %}
+output "db_endpoint" {
+  value = aws_db_instance.default.endpoint
+}
+{% endif %}
+
+{% if has_storage %}
+output "s3_bucket_name" {
+  value = aws_s3_bucket.assets.bucket
+}
+{% endif %}
