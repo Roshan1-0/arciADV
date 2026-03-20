@@ -1,6 +1,15 @@
+<<<<<<< HEAD
 fastapi
 uvicorn
 openai
 Jinja2
 pydantic
 python-dotenv
+=======
+fastapi==0.104.1
+uvicorn==0.24.0.post1
+openai==1.6.0
+Jinja2==3.1.2
+pydantic==2.5.2
+python-dotenv==1.0.0
+>>>>>>> b13db740ab9061025a6c77321c115315824c3f25

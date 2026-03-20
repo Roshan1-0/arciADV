@@ -27,8 +27,12 @@ async def generate_architecture_plan(req: ArchitectureRequest) -> dict:
     - Region: {req.region}
     - High Availability: {req.high_availability}
     - Security Level: {req.security_level}
+<<<<<<< HEAD
     - Expected Uptime SLA: {req.uptime}%
     - Project Runtime: {req.runtime_months} month(s)
+=======
+    - Budget: {req.budget}
+>>>>>>> b13db740ab9061025a6c77321c115315824c3f25
     
     Return your response strictly as a JSON object with the following schema:
     {{
@@ -71,6 +75,7 @@ async def generate_architecture_plan(req: ArchitectureRequest) -> dict:
         print(f"OpenAI API Error: {e}. Falling back to mock data.")
         return get_mock_ai_response(req)
 
+<<<<<<< HEAD
 
 def get_mock_ai_response(req: ArchitectureRequest):
     """
@@ -203,4 +208,34 @@ def get_mock_ai_response(req: ArchitectureRequest):
         "explanation": explanation,
         "mermaid_diagram": mermaid,
         "components": components
+=======
+def get_mock_ai_response(req: ArchitectureRequest):
+    """Fallback if API key is missing or call fails."""
+    provider = req.cloud_provider.upper()
+    vpc = "VPC" if provider == "AWS" else "VNet"
+    lb = "ALB" if provider == "AWS" else "App Gateway"
+    compute = "EC2 AutoScaling" if provider == "AWS" else "VM Scale Set"
+    db = "RDS PostgreSQL" if provider == "AWS" else "Azure Database for PostgreSQL"
+    storage = "S3 Bucket" if provider == "AWS" else "Blob Storage"
+    
+    mermaid = f"""
+graph TD
+    User --> LB[{lb}]
+    subgraph {vpc}
+        LB --> Compute[{compute}]
+        Compute --> DB[({db})]
+    end
+    Compute --> Storage[({storage})]
+"""
+    return {
+        "explanation": "This is a highly available mock architecture tailored for your requirements using standard cloud components.",
+        "mermaid_diagram": mermaid.strip(),
+        "components": [
+            {"type": "network", "service_name": vpc, "instance_size": "Standard", "count": 1, "notes": "Isolated network"},
+            {"type": "loadbalancer", "service_name": lb, "instance_size": "Standard", "count": 1, "notes": "Traffic distribution"},
+            {"type": "compute", "service_name": compute, "instance_size": "t3.medium" if provider=="AWS" else "Standard_B2s", "count": 2, "notes": "Web/API layer"},
+            {"type": "database", "service_name": db, "instance_size": "db.t3.medium" if provider=="AWS" else "Standard_v2", "count": 1, "notes": "Relational data"},
+            {"type": "storage", "service_name": storage, "instance_size": "Standard", "count": 1, "notes": "Object storage"}
+        ]
+>>>>>>> b13db740ab9061025a6c77321c115315824c3f25
     }

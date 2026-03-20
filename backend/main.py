@@ -14,7 +14,7 @@ app = FastAPI(title="AI-Powered Infrastructure Design Generator API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For production, restrict this to frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
