@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm_install.log
+out.txt
+error.log
+
+# IDE
+.vscode/
+.idea/
+
+# Temp
+backend/pip_out.txt
+backend/npm_out.txt
