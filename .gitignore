@@ -21,6 +21,9 @@ client/node_modules/
 client/dist/
 client/.vite/
 
+# Root Node Modules
+node_modules/
+
 # Env files (keep .env.example)
 .env
 *.env.local
