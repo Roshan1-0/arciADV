@@ -3,18 +3,33 @@ __pycache__/
 *.py[cod]
 *.pyo
 .venv/
-.env
 *.egg-info/
 dist/
 build/
 
-# Node / Frontend
+# Node / Frontend (old)
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+
+# Node / Server (new)
+server/node_modules/
+server/.env
+
+# Node / Client (new)
+client/node_modules/
+client/dist/
+client/.vite/
+
+# Env files (keep .env.example)
+.env
+*.env.local
+
+# Logs
 npm_install.log
 out.txt
 error.log
+*.log
 
 # IDE
 .vscode/

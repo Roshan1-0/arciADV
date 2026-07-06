@@ -46,25 +46,25 @@ const InputForm = ({ onSubmit, isLoading }) => {
   const showUptimeWarning = uptimeFloat >= 99.9;
 
   return (
-    <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl sticky top-24">
-      <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-        <span className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">1</span>
+    <form onSubmit={handleSubmit} className="bg-space-indigo-500 border border-dusty-grape-400 rounded-2xl p-6 shadow-xl sticky top-24">
+      <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-parchment">
+        <span className="w-8 h-8 rounded-lg bg-almond-silk-100/30 text-almond-silk flex items-center justify-center">1</span>
         Define Requirements
       </h2>
 
       <div className="space-y-4">
         {selectFields.map((field) => (
           <div key={field.name}>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5">{field.label}</label>
+            <label className="block text-sm font-medium text-lilac-ash-500 mb-1.5">{field.label}</label>
             <select
               name={field.name}
               value={formData[field.name]}
               onChange={handleChange}
               disabled={isLoading}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow disabled:opacity-50"
+              className="w-full bg-space-indigo-300 border border-dusty-grape-400 rounded-lg px-4 py-2.5 text-parchment focus:outline-none focus:ring-2 focus:ring-almond-silk-500 transition-shadow disabled:opacity-50"
             >
               {field.options.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt} value={opt} className="bg-space-indigo-500 text-parchment">{opt}</option>
               ))}
             </select>
           </div>
@@ -72,9 +72,9 @@ const InputForm = ({ onSubmit, isLoading }) => {
 
         {/* Uptime Slider */}
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1.5 flex items-center gap-2">
+          <label className="block text-sm font-medium text-lilac-ash-500 mb-1.5 flex items-center gap-2">
             Expected Uptime (%)
-            <span className="text-xs text-slate-500 flex items-center gap-1">
+            <span className="text-xs text-lilac-ash-400 flex items-center gap-1">
               <Info size={12} /> Higher uptime increases redundancy and cost
             </span>
           </label>
@@ -88,14 +88,14 @@ const InputForm = ({ onSubmit, isLoading }) => {
               value={formData.uptime}
               onChange={handleChange}
               disabled={isLoading}
-              className="w-full accent-blue-500 disabled:opacity-50"
+              className="w-full accent-almond-silk disabled:opacity-50"
             />
-            <span className="text-blue-400 font-bold text-sm w-16 text-right shrink-0">
+            <span className="text-almond-silk font-bold text-sm w-16 text-right shrink-0">
               {Number(formData.uptime).toFixed(1)}%
             </span>
           </div>
           {showUptimeWarning && (
-            <div className="mt-2 flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+            <div className="mt-2 flex items-center gap-2 text-xs text-almond-silk-400 bg-almond-silk-100/20 border border-almond-silk-300/30 rounded-lg px-3 py-2">
               ⚠️ High availability architecture will increase cost significantly (×1.5 multiplier)
             </div>
           )}
@@ -103,7 +103,7 @@ const InputForm = ({ onSubmit, isLoading }) => {
 
         {/* Project Runtime */}
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1.5">Project Runtime</label>
+          <label className="block text-sm font-medium text-lilac-ash-500 mb-1.5">Project Runtime</label>
           <div className="flex gap-2">
             <input
               type="number"
@@ -113,17 +113,17 @@ const InputForm = ({ onSubmit, isLoading }) => {
               value={formData.runtime_value}
               onChange={handleChange}
               disabled={isLoading}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full bg-space-indigo-300 border border-dusty-grape-400 rounded-lg px-4 py-2.5 text-parchment focus:outline-none focus:ring-2 focus:ring-almond-silk-500 disabled:opacity-50"
             />
             <select
               name="runtime_unit"
               value={formData.runtime_unit}
               onChange={handleChange}
               disabled={isLoading}
-              className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="bg-space-indigo-300 border border-dusty-grape-400 rounded-lg px-3 py-2.5 text-parchment focus:outline-none focus:ring-2 focus:ring-almond-silk-500 disabled:opacity-50"
             >
-              <option>Months</option>
-              <option>Years</option>
+              <option className="bg-space-indigo-500">Months</option>
+              <option className="bg-space-indigo-500">Years</option>
             </select>
           </div>
         </div>
@@ -132,7 +132,7 @@ const InputForm = ({ onSubmit, isLoading }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="mt-8 w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-8 w-full bg-almond-silk hover:bg-almond-silk-600 text-space-indigo-500 font-semibold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-almond-silk/20 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Generating...' : 'Generate Architecture'}
       </button>

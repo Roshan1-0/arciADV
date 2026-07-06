@@ -6,7 +6,7 @@ import CostPanel from './components/CostPanel';
 import { Server, CloudCog, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -35,19 +35,19 @@ function App() {
   const TABS = ['diagram', 'explanation', 'cost', 'terraform'];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
+    <div className="min-h-screen bg-space-indigo-400 text-parchment">
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+      <header className="border-b border-dusty-grape-400 bg-space-indigo-500/60 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-600/20 rounded-lg text-blue-400">
+            <div className="p-2 bg-almond-silk-100/40 rounded-lg text-almond-silk-500">
               <CloudCog size={28} />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-almond-silk-500 to-parchment bg-clip-text text-transparent">
               InfraGen AI
             </h1>
           </div>
-          <div className="text-sm font-medium text-slate-400 flex items-center gap-2">
+          <div className="text-sm font-medium text-lilac-ash-500 flex items-center gap-2">
             <Server size={16} /> Production-Ready Architecture
           </div>
         </div>
@@ -63,30 +63,30 @@ function App() {
         {/* Right Side: Results */}
         <div className="w-full lg:w-2/3">
           {loading ? (
-            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border border-slate-800 rounded-2xl bg-slate-900/50 backdrop-blur-sm">
-              <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-              <p className="text-lg text-slate-300 font-medium animate-pulse">Designing your infrastructure...</p>
-              <p className="text-sm text-slate-500 mt-2">Generating architecture and calculating costs</p>
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border border-dusty-grape-400 rounded-2xl bg-space-indigo-500/50 backdrop-blur-sm">
+              <Loader2 className="w-12 h-12 text-almond-silk animate-spin mb-4" />
+              <p className="text-lg text-parchment-400 font-medium animate-pulse">Designing your infrastructure...</p>
+              <p className="text-sm text-lilac-ash-500 mt-2">Generating architecture and calculating costs</p>
             </div>
           ) : error ? (
-            <div className="h-full min-h-[500px] flex items-center justify-center border border-red-900/50 rounded-2xl bg-red-950/20 p-8">
+            <div className="h-full min-h-[500px] flex items-center justify-center border border-almond-silk-300/50 rounded-2xl bg-almond-silk-100/10 p-8">
               <div className="text-center">
-                <p className="text-red-400 font-medium text-lg mb-2">Error generating architecture</p>
-                <p className="text-slate-400 text-sm whitespace-pre-wrap">{error}</p>
+                <p className="text-almond-silk-400 font-medium text-lg mb-2">Error generating architecture</p>
+                <p className="text-lilac-ash-500 text-sm whitespace-pre-wrap">{error}</p>
               </div>
             </div>
           ) : result ? (
-            <div className="flex flex-col h-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="flex flex-col h-full bg-space-indigo-500 border border-dusty-grape-400 rounded-2xl overflow-hidden shadow-xl">
               {/* Tabs */}
-              <div className="flex border-b border-slate-800 bg-slate-950/50 px-2 pt-2">
+              <div className="flex border-b border-dusty-grape-400 bg-space-indigo-400/60 px-2 pt-2">
                 {TABS.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors capitalize ${
                       activeTab === tab
-                        ? 'bg-slate-800 text-blue-400 border-b-2 border-blue-500'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                        ? 'bg-dusty-grape-400 text-almond-silk border-b-2 border-almond-silk-500'
+                        : 'text-lilac-ash-500 hover:text-parchment hover:bg-dusty-grape-300/40'
                     }`}
                   >
                     {tab}
@@ -101,15 +101,15 @@ function App() {
                 )}
                 {activeTab === 'explanation' && (
                   <div className="prose prose-invert max-w-none">
-                    <h3 className="text-xl font-semibold mb-4 text-slate-100">Architecture Explanation</h3>
-                    <p className="text-slate-300 leading-relaxed">{result.explanation}</p>
+                    <h3 className="text-xl font-semibold mb-4 text-parchment">Architecture Explanation</h3>
+                    <p className="text-parchment-400 leading-relaxed">{result.explanation}</p>
                   </div>
                 )}
                 {activeTab === 'cost' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-5 text-slate-100 flex items-center justify-between">
+                    <h3 className="text-xl font-semibold mb-5 text-parchment flex items-center justify-between">
                       Cost Estimation
-                      <span className="text-2xl font-bold text-emerald-400">
+                      <span className="text-2xl font-bold text-almond-silk">
                         {fmtINR(result.cost_breakdown?.total_runtime_cost ?? result.total_monthly_cost.amount)}/project
                       </span>
                     </h3>
@@ -126,12 +126,12 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20 text-center p-8">
-              <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                <CloudCog className="w-10 h-10 text-slate-500" />
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border border-dashed border-dusty-grape-400 rounded-2xl bg-space-indigo-500/20 text-center p-8">
+              <div className="w-20 h-20 bg-dusty-grape-300 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <CloudCog className="w-10 h-10 text-lilac-ash-500" />
               </div>
-              <h2 className="text-2xl font-semibold text-slate-300 mb-2">Ready to Design</h2>
-              <p className="text-slate-500 max-w-md">
+              <h2 className="text-2xl font-semibold text-parchment-400 mb-2">Ready to Design</h2>
+              <p className="text-lilac-ash-500 max-w-md">
                 Fill out your application requirements on the left, and our system will generate a complete cloud architecture, cost estimate, and deployment code.
               </p>
             </div>
