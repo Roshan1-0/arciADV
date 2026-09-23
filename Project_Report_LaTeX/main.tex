@@ -1,0 +1,108 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage{times}
+\usepackage{graphicx}
+\tolerance=1000
+\emergencystretch=2em
+\hyphenpenalty=5000
+\hbadness=10000
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=red
+}
+\urlstyle{same}
+
+\usepackage[top=2cm, bottom=2cm, left=2.5cm, right=2cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{microtype}
+
+% Code Listing Configuration
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single
+}
+\lstset{style=mystyle}
+
+\setlength{\arrayrulewidth}{0.4mm}
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.3}
+
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyhead[R]{\itshape\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand\headrulewidth{1pt}
+\renewcommand\footrulewidth{0.5pt}
+
+\linespread{1.3}
+
+\begin{document}
+
+% ─── PRELIMINARY PAGES (Roman Numerals) ─────────────────────────────────────────
+\pagenumbering{roman}
+
+\include{cover}
+\include{Certificate}
+\include{Ack}
+\include{Abstract}
+\include{toc}
+
+% ─── MAIN CHAPTERS (Arabic Numerals) ───────────────────────────────────────────
+\newpage
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyhead[R]{\itshape\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand\headrulewidth{1pt}
+\renewcommand\footrulewidth{0.5pt}
+
+\include{Chap-1-Intro}
+\include{chap-2-Lit}
+\include{Chap-3-SRS}
+\include{chap-4-Design}
+\include{Chap-5-Methodology}
+\include{Chap-6-imple}
+\include{Chap-7-Concl}
+\include{Chap-8-Futur}
+\include{Chap-9-Research}
+\include{Bibilio}
+
+\end{document}

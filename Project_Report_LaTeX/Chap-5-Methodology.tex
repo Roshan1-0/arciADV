@@ -1,0 +1,150 @@
+\chapter{Methodology}\doublespacing
+
+\section{Overview}
+The development of the \textbf{LightAngo} compiler follows a rigorous engineering methodology structured around the classical multi-pass compilation paradigm, augmented by an active syntax-level documentation validation engine. The methodology encompasses distinct phases: lexical scanning, grammatical parsing and abstract syntax tree (AST) construction, semantic scope and type verification, documentation rule gating, machine-independent optimization, and native 64-bit x86 target code synthesis.
+
+Each phase is designed as an independent, deterministic subsystem operating upon well-defined data structures, ensuring mathematical correctness, high modularity, and maintainable software architecture.
+
+\section{System Workflow}
+The operational lifecycle of compiling a LightAngo source file proceeds through the following sequential pipeline:
+\begin{enumerate}
+    \item \textbf{Source File Ingestion:} The compiler driver loads the raw source file into a contiguous UTF-8 memory buffer and initializes coordinate tracking.
+    \item \textbf{Lexical Analysis:} The character buffer is scanned by a state-machine tokenizer, generating an ordered sequence of typed tokens while populating the preceding comment registry.
+    \item \textbf{Recursive Descent Parsing:} The parser processes tokens according to LightAngo's Context-Free Grammar, dynamically evaluating expression operator precedence and synthesizing typed AST nodes.
+    \item \textbf{Comment Rule Verification:} During parse tree construction, specific grammar productions for loops and functions query the documentation registry to verify the presence of mandatory explanatory comments.
+    \item \textbf{Semantic Analysis:} The semantic analyzer traverses the AST, establishing nested lexical scopes, binding variables in the symbol table, verifying type consistency, and ensuring identifier lifetime validity.
+    \item \textbf{Machine-Independent Optimization:} An AST optimization pass performs constant folding and subexpression reduction on arithmetic expressions.
+    \item \textbf{x86-64 Assembly Synthesis:} The backend generator traverses the optimized AST, managing the runtime stack frame (`%rsp`), emitting 64-bit NASM assembly instructions, and resolving branch labels.
+    \item \textbf{Assembly and Binary Linkage:} The driver executes external system calls to `nasm` and `ld`, outputting an ELF64 executable.
+\end{enumerate}
+
+\section{Source Code Input Specification}
+The LightAngo language grammar supports clear, expressive, strongly-typed imperative constructs. An example valid program illustrates its syntax:
+\begin{verbatim}
+// Compute arithmetic evaluation and conditional exit code
+let y = (10 - 2 * 3) / 2;
+let x = 7;
+
+// Verify comparison and assign exit code
+if (0) {
+    x = 1;
+} elif (0) {
+    x = 2;
+} else {
+    x = 69;
+}
+
+exit(x);
+\end{verbatim}
+
+\section{Lexical Analysis and Tokenization}
+Lexical analysis constitutes the first analytical phase. The scanner reads the source character stream $C = \{c_1, c_2, \dots, c_n\}$ and transforms it into a discrete token stream $T = \{t_1, t_2, \dots, t_m\}$.
+
+\subsection{Token Classification}
+Tokens in LightAngo are represented by an enumerated type `TokenType` and an optional string value:
+\begin{itemize}
+    \item \textbf{Keywords:} `_let`, `_if`, `_elif`, `_else`, `_while`, `_for`, `_fn`, `_exit`.
+    \item \textbf{Literals:} `_int_lit` (e.g., `42`), `_string_lit` (e.g., `"hello"`).
+    \item \textbf{Identifiers:} `_ident` (regular expression `[a-zA-Z_][a-zA-Z0-9_]*`).
+    \item \textbf{Operators:} `_plus`, `_minus`, `_star`, `_fslash`, `_eq`, `_eq_eq`, `_less`, `_greater`.
+    \item \textbf{Punctuation:} `_open_paren`, `_close_paren`, `_open_curly`, `_close_curly`, `_semi`, `_comma`.
+\end{itemize}
+
+\subsection{Dual-Stream Comment Tracking}
+Unlike standard compilers that purge comments during scanning, LightAngo's tokenizer distinguishes between code tokens and comment structures:
+\begin{itemize}
+    \item Single-line comments starting with `//` consume characters until a newline character `\n` is reached.
+    \item Multi-line comments enclosed in `/* ... */` consume all interior characters across multiple lines.
+    \item Instead of discarding these strings, the scanner registers each comment with its starting line, ending line, and raw text in a dedicated \texttt{CommentRegistry} lookup table.
+\end{itemize}
+
+\section{Syntax Analysis and AST Construction}
+The syntax analyzer implements a \textbf{Top-Down Recursive Descent Parser} with lookahead capability ($\text{LL}(k)$). The parser checks whether the token stream satisfies the formal grammar of LightAngo and produces a polymorphic Abstract Syntax Tree (AST).
+
+\subsection{Context-Free Grammar Formalism}
+The core grammar productions are formulated as:
+\begin{align*}
+\text{Program} &\rightarrow \text{Statement}^* \\
+\text{Statement} &\rightarrow \text{VarDecl} \mid \text{Assignment} \mid \text{IfStmt} \mid \text{WhileStmt} \mid \text{ExitStmt} \\
+\text{VarDecl} &\rightarrow \text{"let"} \ \text{IDENT} \ \text{"="} \ \text{Expr} \ \text{";"} \\
+\text{IfStmt} &\rightarrow \text{"if"} \ \text{"("} \ \text{Expr} \ \text{")"} \ \text{Block} \ (\text{"elif"} \ \text{"("} \ \text{Expr} \ \text{")"} \ \text{Block})^* \ [\text{"else"} \ \text{Block}] \\
+\text{WhileStmt} &\rightarrow \text{"while"} \ \text{"("} \ \text{Expr} \ \text{")"} \ \text{Block} \\
+\text{Expr} &\rightarrow \text{Term} \ ((\text{"+"}\mid\text{"-"}) \ \text{Term})^* \\
+\text{Term} &\rightarrow \text{Factor} \ ((\text{"*"}\mid\text{"/"}\mid\text{"\%"}) \ \text{Factor})^* \\
+\text{Factor} &\rightarrow \text{INT\_LIT} \mid \text{IDENT} \mid \text{"("} \ \text{Expr} \ \text{")"}
+\end{align*}
+
+\subsection{AST Node Hierarchy}
+AST nodes are represented in C++ using an inheritance hierarchy rooted at `NodeStmt` and `NodeExpr`. Subtypes include `NodeStmtLet`, `NodeStmtIf`, `NodeStmtWhile`, `NodeStmtExit`, `NodeBinExprAdd`, `NodeBinExprMult`, and `NodeTermIdent`.
+
+\section{Semantic Analysis and Scoped Symbol Management}
+Semantic analysis verifies the contextual consistency and computational validity of the AST before code generation.
+
+\subsection{Scoped Symbol Table Architecture}
+Variable scope is managed through a hierarchical symbol table structure where each lexical block (`{ ... }`) instantiates a new scope level linked to its enclosing parent scope:
+\begin{itemize}
+    \item \textbf{Symbol Record:} Stores variable identifier name, declared type (integer, boolean, string), stack offset relative to the base frame, and initialization state.
+    \item \textbf{Lookup Resolution:} When an identifier is referenced, the compiler searches the innermost active scope. If not found, it traverses parent scopes outward to the global scope. If unresolved, a fatal \texttt{"Undeclared identifier"} error is raised.
+    \item \textbf{Shadowing and Duplication:} Declaring an identical identifier within the same scope is rejected as a duplicate declaration error, while inner-scope shadowing of outer variables is supported safely.
+\end{itemize}
+
+\section{Comment Validation Mechanism}
+The core innovation of LightAngo is its integrated comment enforcement rule. When the parser encounters the initiation of a high-complexity structural block:
+\begin{enumerate}
+    \item The parser extracts the line number $L_{\text{stmt}}$ of the construct (e.g., `while` loop or `fn` definition).
+    \item It queries the \texttt{CommentRegistry} for any comment registered in the interval $[L_{\text{stmt}} - k, L_{\text{stmt}} - 1]$, where $k$ is the allowable line proximity threshold (default $k=2$).
+    \item It checks that the comment contains meaningful text (minimum length $\ge 5$ non-whitespace characters) to prevent dummy placeholder comments (e.g., `// x`).
+    \item If verification fails, the parser halts with:
+    \begin{verbatim}
+    Compilation Error: Mandatory documentation comment missing 
+    before loop construct at line 14.
+    Every loop and function must include explanatory documentation.
+    \end{verbatim}
+\end{enumerate}
+
+\section{Intermediate Code and Node Representation}
+LightAngo utilizes a high-level AST intermediate representation that directly maps expressions into postfix linear evaluation sequences. Complex expressions are flattened into binary operator evaluation steps where operands are pushed onto the virtual operand stack and operators pop and execute operations.
+
+\section{Machine-Independent Optimization}
+LightAngo incorporates clean optimization passes on the AST prior to assembly emission:
+\begin{itemize}
+    \item \textbf{Constant Folding:} If both left and right children of an arithmetic binary expression node are constant integer literals, the compiler evaluates the operation at compile time and collapses the binary node into a single literal node. For example, $(10 - 2 \times 3) / 2 \rightarrow (10 - 6)/2 \rightarrow 4/2 \rightarrow 2$.
+    \item \textbf{Constant Propagation:} Statically assigned immutable let-bindings are evaluated directly into dependent expressions when safe.
+    \item \textbf{Dead Branch Pruning:} Conditional branches with constant false conditions (e.g., `if (0) { ... }`) are skipped during assembly synthesis.
+\end{itemize}
+
+\section{Code Generation (Target: x86-64 NASM)}
+The code generation phase traverses the validated, optimized AST and emits 64-bit x86 assembly for the Netwide Assembler (NASM).
+
+\subsection{Stack Frame Allocation Strategy}
+LightAngo employs a stack-allocated register model:
+\begin{itemize}
+    \item Local variables are allocated stack slots relative to `%rsp` (e.g., `QWORD [rsp + offset]`).
+    \item Expressions evaluate onto the stack using `push rax` and `pop rbx`.
+    \item Binary addition:
+    \begin{verbatim}
+    pop rbx
+    pop rax
+    add rax, rbx
+    push rax
+    \end{verbatim}
+    \item Binary multiplication:
+    \begin{verbatim}
+    pop rbx
+    pop rax
+    imul rax, rbx
+    push rax
+    \end{verbatim}
+\end{itemize}
+
+\subsection{Linux System V ABI Syscalls}
+Process termination via `exit(expr)` generates the native 64-bit Linux syscall sequence:
+\begin{verbatim}
+mov rax, 60         ; sys_exit syscall number
+mov rdi, [rsp]      ; exit status code
+syscall
+\end{verbatim}
+
+\section{Error Handling and Diagnostic Recovery}
+LightAngo implements precise, resilient diagnostic reporting. When a lexical, syntactic, semantic, or documentation error occurs, the compiler generates a structured diagnostic specifying the exact source file, line number, column offset, offending token string, and an actionable hint, exiting gracefully without crashing.
+\newpage

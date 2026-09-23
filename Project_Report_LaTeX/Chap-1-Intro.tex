@@ -1,0 +1,76 @@
+\chapter{Introduction}\doublespacing
+
+\section{Background}
+In the domain of modern computer engineering, compilers serve as the foundational cornerstone connecting human cognitive thought with physical computing machinery. High-level programming languages provide abstract, expressive, and human-readable syntaxes that allow software engineers to formulate intricate algorithms and systems. However, underlying hardware microarchitectures operate strictly upon binary machine instructions encoded in platform-specific opcodes and register-transfer operations. A compiler acts as an automated, multi-phase translation engine that rigorously analyzes, verifies, transforms, and optimizes high-level source representations into efficient machine-executable code.
+
+The theoretical and practical development of compilers represents one of the most mature subfields of computer science. Over the past several decades, standard compilation models have consolidated into a sequence of distinct analytical and synthesis phases: lexical analysis (scanning), syntactic analysis (parsing), semantic verification, intermediate code generation, target-independent optimization, and native code generation. In contemporary systems programming, compilers such as GCC, Clang/LLVM, and MSVC provide formidable optimization capabilities, vectorization, and code portability.
+
+Despite these immense technological advancements in automated code optimization and target architecture synthesis, the programming interface presented by conventional compilers remains largely indifferent to code documentation discipline and maintainability. In typical compiler pipelines, comments and documentation headers are treated strictly as extraneous whitespace tokens that are discarded at the earliest lexical scanning stage. While this approach maximizes compiler throughput, it leaves a critical gap in software maintainability, quality assurance, and pedagogical software engineering.
+
+\section{Problem Overview}
+The software engineering industry consistently reports that over 70\% of total software lifecycle costs and developer time are expended on maintenance, debugging, code comprehension, and system refactoring rather than original code authoring. When developers write source code under tight deadlines or in individual settings, documentation standards are frequently compromised. Complex iterative algorithms, recursive routines, and nested conditional blocks are left completely undocumented.
+
+When such undocumented code enters code review, continuous integration pipelines, or academic evaluation environments, serious bottlenecks arise:
+\begin{enumerate}
+    \item \textbf{Cognitive Overhead in Code Review:} Team members and technical reviewers must expend significant mental effort reverse-engineering the algorithmic intent, boundary conditions, and invariant assumptions of the original author.
+    \item \textbf{Academic Evaluation Ambiguity:} In university laboratory environments and technical examinations, students frequently implement complex logic without comments. Evaluators are forced to decipher arbitrary variable names and control flows to judge student problem-solving methodology.
+    \item \textbf{Decoupled Quality Linting:} Existing static analysis tools and documentation linters (such as Doxygen, SonarQube, or ESLint) operate as standalone external utilities outside the core translation engine. Because these tools do not block compilation or binary synthesis by default, developers routinely ignore warnings and bypass documentation rules.
+\end{enumerate}
+
+\section{Motivation}
+The primary motivation behind the \textbf{LightAngo} compiler project is to reconceptualize the traditional relationship between source code documentation and the compiler translation pipeline. By elevating documentation from a passive, ignored artifact to an enforced syntactic and semantic language contract, LightAngo bridges the divide between compiler construction theory and disciplined software engineering practices.
+
+Developing an end-to-end custom compiler from scratch in C++ provides an uncompromised opportunity to study and implement every phase of the translation pipeline:
+\begin{itemize}
+    \item Designing a clean, expressive context-free grammar (CFG) for variable bindings, arithmetic expressions, conditional branches, loops, and procedures.
+    \item Implementing robust recursive descent parsing algorithms capable of producing detailed Abstract Syntax Trees (ASTs).
+    \item Constructing rigorous symbol table data structures supporting lexical scoping, identifier binding, and static type inference.
+    \item Designing an innovative \textit{Documentation Token Binding Mechanism} that associates lexical comment streams directly with downstream syntax nodes.
+    \item Emitting clean, human-verifiable 64-bit x86 (NASM) assembly instructions utilizing standard Linux System V ABI calling conventions and ELF linkage.
+\end{itemize}
+
+\section{Objectives}
+The primary technical and academic objectives of this project are:
+\begin{enumerate}
+    \item \textbf{Custom Language Specification:} Define a formal grammar for the LightAngo language, incorporating variables (`let`), conditional logic (`if`, `elif`, `else`), iterative execution, expressions, and system invocation primitives (`exit()`).
+    \item \textbf{Multi-Phase Architecture Implementation:} Implement a clean, modular compilation pipeline in modern C++ comprising Scanner, Parser, Semantic Analyzer, Intermediate Code Generator, and Assembly Emitter.
+    \item \textbf{Grammar-Level Comment Enforcement:} Design an integrated validation engine within the front-end that requires mandatory, meaningful comments preceding loop constructs and function declarations, raising compilation errors when violated.
+    \item \textbf{Robust Scoped Symbol Management:} Create dynamic hierarchical symbol tables to resolve variable scopes, detect undeclared identifiers, and prevent duplicate binding errors.
+    \item \textbf{Native Code Generation:} Translate validated AST nodes into clean, efficient 64-bit NASM assembly code, assemble it with `nasm -f elf64`, and link with `ld` to generate standalone native Linux executables.
+    \item \textbf{Comprehensive Diagnostic Feedback:} Implement clear, actionable diagnostic error reporting indicating precise source lines, token contexts, and semantic remediation hints.
+\end{enumerate}
+
+\section{Scope of the Project}
+The scope of the LightAngo project spans the complete engineering lifecycle of an educational and practical systems programming language:
+\begin{itemize}
+    \item \textbf{Target Operating System:} Linux 64-bit architecture (Ubuntu/Debian-compatible).
+    \item \textbf{Implementation Environment:} C++ (ISO C++20 standard), compiled via GCC/Clang within the CLion integrated development environment with CMake build configuration.
+    \item \textbf{Target Backend Toolchain:} Netwide Assembler (NASM) targeting 64-bit ELF format, GNU Linker (`ld`), and Linux kernel syscall conventions (`sys_exit`, register-allocated calls).
+    \item \textbf{Pedagogical and Practical Applicability:} Serves both as a foundational reference for compiler design coursework and as an automated enforcement framework for academic grading and coding discipline in team projects.
+\end{itemize}
+
+\section{Problem Statement}
+\textit{“Existing traditional compilers prioritize runtime speed and binary generation while completely stripping source comments at the lexical phase, thereby failing to enforce code clarity, documentation discipline, or developer maintainability. There exists a pressing need for an integrated ahead-of-time compiler architecture that incorporates grammar-level documentation validation as a mandatory compilation gate while simultaneously producing correct, robust, and optimized 64-bit native machine assembly.”}
+
+\section{Proposed Solution}
+The proposed solution, \textbf{LightAngo}, addresses this challenge through a unified compiler pipeline that couples rigorous syntax and semantic validation with active documentation checking:
+\begin{itemize}
+    \item \textbf{Dual-Stream Lexical Analyzer:} The scanner tokenizes all standard identifiers, keywords, literals, and operators while buffering structured comment tokens in an active documentation registry rather than purging them.
+    \item \textbf{AST-Bound Documentation Nodes:} During recursive descent parsing, loop and subroutine grammar rules query the documentation registry. The parser verifies that a valid structural comment immediately precedes the construct before constructing the corresponding AST node.
+    \item \textbf{Strict Semantic Validator:} Analyzes symbol declarations, evaluates expression types, verifies register bounds, and verifies that variable lifetimes conform to lexical scope boundaries.
+    \item \textbf{Direct NASM Code Synthesis:} Traverses the validated AST to emit stack-balanced x86-64 assembly instructions, leveraging the `%rsp` stack pointer, `%rax`, and `%rdi` registers for expression evaluation and system calls.
+\end{itemize}
+
+\section{Organization of the Report}
+The remainder of this report is structured as follows:
+\begin{itemize}
+    \item \textbf{Chapter 2 (Literature Survey):} Presents an in-depth review of 20 seminal and contemporary research papers in compiler theory, parser generators, static analysis tools, code optimization, and documentation frameworks.
+    \item \textbf{Chapter 3 (Software Requirements Specification):} Outlines the detailed functional and non-functional requirements, hardware/software specifications, and use case definitions.
+    \item \textbf{Chapter 4 (System Design and Architecture):} Details the modular system architecture, Context Diagram (DFD Level 0), Level 1 DFD, System Flowchart, and Activity Diagram.
+    \item \textbf{Chapter 5 (Methodology):} Explains the theoretical algorithms and methodologies applied in each phase of the LightAngo compilation pipeline.
+    \item \textbf{Chapter 6 (Implementation):} Provides a thorough module-by-module breakdown with concrete code implementations, class structures, token definitions, and assembly output.
+    \item \textbf{Chapter 7 (Conclusion):} Summarizes the project achievements, technical insights gained, and software quality implications.
+    \item \textbf{Chapter 8 (Future Work):} Highlights future research trajectories including array/struct support, LLVM IR backend targets, and IDE linter plugins.
+    \item \textbf{Chapter 9 (Research Paper and Plagiarism Report):} Includes the complete academic research paper prepared from this project along with the plagiarism verification report.
+\end{itemize}
+\newpage

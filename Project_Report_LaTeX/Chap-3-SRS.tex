@@ -1,0 +1,178 @@
+\chapter{Analysis / Software Requirements Specification (SRS)}\doublespacing
+
+\section{Introduction to SRS}
+The Software Requirements Specification (SRS) establishes a formal, rigorous blueprint for the design, architecture, implementation, and verification of the \textbf{LightAngo} compiler system. It details the complete functional expectations, non-functional performance and reliability criteria, target hardware and software operational environments, and detailed use case scenarios governing system interactions.
+
+This specification serves as the fundamental contract between language design specifications, engineering constraints, and verification metrics for the ahead-of-time (AOT) compilation of the LightAngo programming language.
+
+\section{System Overview}
+The LightAngo system is a self-contained, native compiler engineered in C++20 for 64-bit Linux architectures. It processes source files written in the custom LightAngo high-level programming language (`.lango` or `.ango` files) and translates them through a multi-stage compilation pipeline into 64-bit x86 NASM assembly (`.asm`), assembling and linking them into executable ELF binaries.
+
+Unlike conventional compilers that treat comments purely as whitespace to be ignored, LightAngo integrates an active \textit{Documentation Verification Engine} directly into its recursive-descent parsing and semantic analysis layers. The system evaluates both syntactic correctness and documentation compliance before permitting assembly synthesis.
+
+\section{Functional Requirements}
+The functional requirements specify the exact operations, transformations, and behaviors the LightAngo compiler must execute across each phase of the compilation lifecycle.
+
+\begin{enumerate}
+    \item \textbf{FR-01: Source Code Ingestion}
+    \begin{itemize}
+        \item The system shall accept standard UTF-8 encoded text source files containing valid or invalid LightAngo source code.
+        \item The system shall support command-line arguments specifying input files, output targets, and verbose compilation flags.
+    \end{itemize}
+
+    \item \textbf{FR-02: Lexical Analysis and Tokenization}
+    \begin{itemize}
+        \item The lexical scanner shall convert the raw character stream into strongly typed tokens, including keywords (`let`, `if`, `elif`, `else`, `while`, `for`, `fn`, `exit`), identifiers, integer/string literals, arithmetic operators (`+`, `-`, `*`, `/`, `\%`), comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`), and punctuation (`(`, `)`, `{`, `}`, `;`, `,`).
+        \item The scanner shall track precise source coordinates (line number and column offset) for every token to support pinpoint error reporting.
+        \item The scanner shall capture single-line comments (`//...`) and multi-line comments (`/* ... */`) into a structured comment buffer linked to line numbers rather than discarding them.
+    \end{itemize}
+
+    \item \textbf{FR-03: Syntax Analysis and AST Generation}
+    \begin{itemize}
+        \item The recursive descent parser shall validate the token stream against the formal Context-Free Grammar (CFG) of the LightAngo language.
+        \item The parser shall construct a strongly-typed Abstract Syntax Tree (AST) representing statements, binary/unary expressions, variable bindings, conditional branches, and function definitions.
+        \item The parser shall enforce operator precedence and associativity rules (multiplication/division over addition/subtraction).
+    \end{itemize}
+
+    \item \textbf{FR-04: Grammar-Level Comment Enforcement}
+    \begin{itemize}
+        \item Prior to parsing any loop construct (`while`, `for`) or function declaration (`fn`), the parser shall inspect the preceding comment registry.
+        \item If no valid, non-empty documentation comment is detected within the immediate preceding source lines, the compiler shall generate a fatal diagnostic error (e.g., \texttt{"Error: Missing mandatory documentation comment before loop construct at line X"}).
+        \item Compilation shall be immediately gated, preventing binary emission for undocumented code.
+    \end{itemize}
+
+    \item \textbf{FR-05: Semantic Analysis and Scoped Symbol Table Management}
+    \begin{itemize}
+        \item The semantic analyzer shall maintain a hierarchical, scoped symbol table tracking variable identifiers, data types, stack memory offsets, and mutability flags.
+        \item The system shall detect and reject undeclared identifier references, duplicate declarations in the same lexical scope, and invalid type assignments.
+        \item The system shall verify control flow integrity, ensuring that system calls and return pathways conform to language semantics.
+    \end{itemize}
+
+    \item \textbf{FR-06: Machine-Independent Optimization}
+    \begin{itemize}
+        \item The compiler shall perform constant folding on compile-time evaluable expressions (e.g., evaluating \texttt{(10 - 2 * 3) / 2} to \texttt{2} at compile time).
+        \item The system shall eliminate redundant stack pushes and pops for trivial sequential expressions.
+    \end{itemize}
+
+    \item \textbf{FR-07: x86-64 NASM Code Generation}
+    \begin{itemize}
+        \item The code generation engine shall traverse the validated AST and emit valid 64-bit Netwide Assembler (NASM) code conforming to the Linux System V AMD64 ABI.
+        \item The generator shall manage local variable allocation on the stack frame relative to the `%rsp` register.
+        \item The generator shall emit correct conditional jump labels (`je`, `jne`, `jl`, `jge`, `jmp`) for `if-elif-else` constructs and loop iterations.
+        \item The generator shall correctly synthesize Linux system call sequences (e.g., `mov rax, 60` and `mov rdi, [val]; syscall` for process exit).
+    \end{itemize}
+
+    \item \textbf{FR-08: Assembler and Linker Integration}
+    \begin{itemize}
+        \item The system shall automatically invoke `nasm -f elf64 out.asm -o out.o` to produce 64-bit object files.
+        \item The system shall automatically invoke GNU Linker `ld -o out out.o` to produce executable ELF binaries.
+    \end{itemize}
+
+    \item \textbf{FR-09: Contextual Error Reporting and Diagnostics}
+    \begin{itemize}
+        \item The diagnostic engine shall print descriptive, color-coded error messages containing the exact file name, line number, column number, offending token, and an explanatory remediation hint.
+    \end{itemize}
+\end{enumerate}
+
+\section{Non-Functional Requirements}
+Non-functional requirements specify the quality attributes, operational limits, and performance benchmarks of the compiler system.
+
+\begin{enumerate}
+    \item \textbf{Performance and Throughput:}
+    \begin{itemize}
+        \item The compiler shall process at least 50,000 lines of source code per second on standard desktop hardware.
+        \item AST generation and semantic analysis for typical programs ($<1000$ lines) shall complete in under 50 milliseconds.
+    \end{itemize}
+
+    \item \textbf{Reliability and Determinism:}
+    \begin{itemize}
+        \item The compiler shall produce strictly deterministic machine code across repeated compilation runs on identical source inputs.
+        \item The compiler shall never terminate abruptly due to unhandled exceptions, memory segmentation faults, or buffer overflows on invalid user inputs.
+    \end{itemize}
+
+    \item \textbf{Memory Safety and Resource Efficiency:}
+    \begin{itemize}
+        \item All internal AST structures and symbol table allocations shall utilize modern C++ smart pointers (`std::unique_ptr`, `std::shared_ptr`) or arena allocators to ensure zero memory leaks.
+        \item Peak memory consumption during compilation shall remain below 64 MB for standard input files.
+    \end{itemize}
+
+    \item \textbf{Usability and Developer Feedback:}
+    \begin{itemize}
+        \item Command-line interface (CLI) shall be intuitive, providing informative help flags (`--help`, `--version`, `--verbose`).
+        \item Error diagnostics shall follow standardized compiler formatting compatible with modern IDEs (CLion, VS Code, Vim).
+    \end{itemize}
+
+    \item \textbf{Portability and System Compatibility:}
+    \begin{itemize}
+        \item The compiler shall build cleanly using GCC (g++ 11+) or Clang (clang++ 14+) with standard CMake build scripts.
+        \item Generated assembly shall run natively on any x86-64 Linux kernel (v4.x, v5.x, v6.x).
+    \end{itemize}
+\end{enumerate}
+
+\section{Hardware Requirements}
+The minimum and recommended hardware specifications for building and running the LightAngo compiler are summarized in Table~\ref{tab:hardware_req}.
+
+\begin{table}[h!]
+\centering
+\caption{Hardware Requirements} \label{tab:hardware_req}
+\setstretch{1.3}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Component} & \textbf{Minimum Specification} & \textbf{Recommended Specification} \\
+\hline
+Processor & Intel Core i3 / AMD Ryzen 3 (64-bit) & Intel Core i5/i7 / AMD Ryzen 5/7 \\
+Clock Speed & 2.0 GHz Dual-Core & 3.0 GHz Quad-Core or higher \\
+RAM & 4 GB DDR4 & 8 GB / 16 GB DDR4/DDR5 \\
+Free Storage & 5 GB free disk space & 20 GB SSD storage \\
+Architecture & x86-64 (AMD64) & x86-64 with AVX2 support \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Software Requirements}
+The software dependencies and development toolchain specifications are detailed in Table~\ref{tab:software_req}.
+
+\begin{table}[h!]
+\centering
+\caption{Software Requirements} \label{tab:software_req}
+\setstretch{1.3}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Category} & \textbf{Tool / Environment Specification} \\
+\hline
+Operating System & Linux (Ubuntu 20.04/22.04 LTS, Debian 11/12, or Fedora 38+) \\
+Compiler Implementation Language & C++ (ISO C++20 standard) \\
+Host Compiler Toolchain & GCC (g++ 11.0+) / Clang (clang++ 14.0+) \\
+Integrated Development Environment & JetBrains CLion / Visual Studio Code \\
+Build Automation & CMake (version 3.20 or higher) \\
+Assembler & Netwide Assembler (NASM version 2.15+) \\
+Linker & GNU Linker (\texttt{ld} from GNU binutils) \\
+Version Control & Git \& GitHub \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Use Case Descriptions}
+The operational workflows of the compiler are structured around nine core use cases spanning user interaction and compiler subsystem execution:
+
+\begin{table}[h!]
+\centering
+\caption{Use Case Specifications} \label{tab:use_cases}
+\setstretch{1.2}
+\begin{tabular}{|p{2.0cm}|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Use Case ID} & \textbf{Use Case Name} & \textbf{Description} \\
+\hline
+\textbf{UC-01} & Write Source Code & Developer writes program statements, expressions, loops, and comments using LightAngo grammar. \\ \hline
+\textbf{UC-02} & Ingest Source File & Compiler reads file from disk, loads content into memory buffer, and initializes line trackers. \\ \hline
+\textbf{UC-03} & Lexical Scanning & Scanner converts character buffer into token list and captures comment structures. \\ \hline
+\textbf{UC-04} & Recursive Parsing & Parser validates token sequences against grammar rules and builds AST hierarchy. \\ \hline
+\textbf{UC-05} & Comment Validation & Verification engine inspects presence of comments before loops and function nodes. \\ \hline
+\textbf{UC-06} & Semantic Validation & Analyzer resolves scopes, checks type rules, and verifies variable bindings in symbol table. \\ \hline
+\textbf{UC-07} & Assembly Emission & Generator synthesizes x86-64 NASM instructions from validated AST. \\ \hline
+\textbf{UC-08} & Binary Linkage & Toolchain invokes NASM assembler and GNU linker to produce final ELF binary executable. \\ \hline
+\textbf{UC-09} & Diagnostic Output & Compiler displays structured error messages or execution status feedback to the user. \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
